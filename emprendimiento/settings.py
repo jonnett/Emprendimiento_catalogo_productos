@@ -26,6 +26,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Mis apps del proyecto. Si creo una app nueva y no la agrego aqui, Django no ve sus modelos.
+    "catalogo",
 ]
 
 MIDDLEWARE = [

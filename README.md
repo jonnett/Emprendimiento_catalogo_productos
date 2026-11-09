@@ -44,10 +44,4 @@ MVP hecho con Django y MySQL donde cada vendedor publica sus productos y los com
    python manage.py runserver
    ```
 
-## Avance por hitos
 
-- [ ] Hito 1: Modelo y datos (requisitos 1 a 3)
-- [ ] Hito 2: Páginas públicas (requisitos 4 a 6)
-- [ ] Hito 3: Cuentas y CRUD (requisitos 7 a 9)
-- [ ] Hito 4: Seguridad, catálogos y etiquetas (requisitos 10 a 12)
-- [ ] Hito 5: Solicitudes y cierre (requisitos 13 a 15)
