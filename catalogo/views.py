@@ -1,6 +1,6 @@
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 
 from pedidos.models import Pedido
 
@@ -79,3 +79,16 @@ def listado(request):
         "parametros": parametros.urlencode(),
     }
     return render(request, "catalogo/listado.html", contexto)
+
+
+def detalle(request, pk):
+    """Detalle de un producto con su categoria, etiquetas, vendedor y datos propios."""
+
+    # pk llega desde la URL, por ejemplo /productos/3/ trae pk igual a 3.
+    # get_object_or_404 busca el producto y si no existe devuelve la pagina de error 404 en vez de caerse con un error 500.
+    # Le paso la consulta con select_related y prefetch_related para traer las relaciones en pocas consultas.
+    producto = get_object_or_404(
+        Producto.objects.select_related("vendedor", "categoria").prefetch_related("etiquetas"),
+        pk=pk,
+    )
+    return render(request, "catalogo/detalle.html", {"producto": producto})

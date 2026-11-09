@@ -9,4 +9,7 @@ app_name = "catalogo"
 urlpatterns = [
     path("", views.portada, name="portada"),
     path("productos/", views.listado, name="listado"),
+    # <int:pk> captura un numero de la URL y se lo pasa a la vista como el parametro pk.
+    # Si en la URL viene algo que no es numero, Django ni siquiera llama a la vista y responde 404.
+    path("productos/<int:pk>/", views.detalle, name="detalle"),
 ]

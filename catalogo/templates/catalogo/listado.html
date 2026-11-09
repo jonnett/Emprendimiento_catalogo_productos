@@ -49,7 +49,9 @@ pagina.object_list tiene solo los cinco productos de la pagina actual.
         <div class="list-group-item">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <h2 class="h6 mb-1">{{ producto.nombre }}</h2>
+                    <h2 class="h6 mb-1">
+                        <a href="{% url 'catalogo:detalle' producto.pk %}" class="text-decoration-none">{{ producto.nombre }}</a>
+                    </h2>
                     <p class="small text-muted mb-1">
                         {{ producto.categoria|default:"Sin categoría" }} · por {{ producto.vendedor.username }}
                         · publicado el {{ producto.fecha_publicacion|date:"d/m/Y" }}

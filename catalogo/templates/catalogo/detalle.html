@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block titulo %}{{ producto.nombre }} · Catálogo de Emprendedores{% endblock %}
+
+{% block contenido %}
+
+<nav class="mb-3">
+    <a href="{% url 'catalogo:listado' %}">&larr; Volver a productos</a>
+</nav>
+
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="h3">{{ producto.nombre }}</h1>
+
+                {% comment %} Las etiquetas vienen de la relacion muchos a muchos. {% endcomment %}
+                <div class="mb-3">
+                    {% for etiqueta in producto.etiquetas.all %}
+                        <span class="badge text-bg-secondary">{{ etiqueta.nombre }}</span>
+                    {% empty %}
+                        <span class="small text-muted">Sin etiquetas</span>
+                    {% endfor %}
+                </div>
+
+                {% comment %} linebreaks respeta los saltos de linea que escribio el vendedor en la descripcion. {% endcomment %}
+                <div class="mb-3">{{ producto.descripcion|linebreaks }}</div>
+
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Precio</dt>
+                    <dd class="col-sm-8 fw-bold">${{ producto.precio|intcomma }}</dd>
+
+                    <dt class="col-sm-4">Stock</dt>
+                    <dd class="col-sm-8">{{ producto.stock }} unidad{{ producto.stock|pluralize:"es" }}</dd>
+
+                    {% comment %} get_estado_display muestra el texto bonito del choice, Activo en vez de activo. {% endcomment %}
+                    <dt class="col-sm-4">Estado</dt>
+                    <dd class="col-sm-8">
+                        {% if producto.estado == "agotado" %}
+                            <span class="badge text-bg-danger">{{ producto.get_estado_display }}</span>
+                        {% else %}
+                            <span class="badge text-bg-success">{{ producto.get_estado_display }}</span>
+                        {% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4">Categoría</dt>
+                    <dd class="col-sm-8">{{ producto.categoria|default:"Sin categoría" }}</dd>
+
+                    <dt class="col-sm-4">Publicado</dt>
+                    <dd class="col-sm-8">{{ producto.fecha_publicacion|date:"d/m/Y H:i" }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        {% comment %} Datos del dueño del producto, el vendedor. {% endcomment %}
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h6 text-muted">Vendedor</h2>
+                <p class="mb-1 fw-bold">{{ producto.vendedor.get_full_name|default:producto.vendedor.username }}</p>
+                <p class="small text-muted mb-0">@{{ producto.vendedor.username }}</p>
+            </div>
+        </div>
+        {% comment %}
+        Aqui despues van los botones de editar y eliminar para el dueño, y el de hacer pedido para los demas.
+        {% endcomment %}
+    </div>
+</div>
+
+{% endblock %}
