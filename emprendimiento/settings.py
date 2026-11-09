@@ -26,6 +26,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # humanize trae filtros para las plantillas, uso intcomma para mostrar los precios como 4.500
+    "django.contrib.humanize",
     # Mis apps del proyecto. Si creo una app nueva y no la agrego aqui, Django no ve sus modelos.
     "catalogo",
     "pedidos",
