@@ -1,0 +1,26 @@
+# Entorno virtual
+venv/
+.venv/
+env/
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+
+# Configuracion local con contraseñas, no se sube
+.env
+
+# Archivos subidos por los usuarios
+media/
+
+# Archivos estaticos recolectados
+staticfiles/
+
+# Editores y sistema
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Base de datos de prueba por si alguna vez uso sqlite
+db.sqlite3
