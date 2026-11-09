@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block titulo %}Productos · Catálogo de Emprendedores{% endblock %}
+
+{% block contenido %}
+
+<h1 class="h3 mb-3">Productos</h1>
+
+{% comment %}
+Formulario de busqueda y filtro. Va con method get para que los datos queden en la URL.
+Dejo los valores que el usuario ya escribio o eligio para que no se borren al buscar.
+{% endcomment %}
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-6">
+        <input type="text" name="q" value="{{ texto }}" class="form-control"
+               placeholder="Buscar por nombre o descripción">
+    </div>
+    <div class="col-md-4">
+        <select name="categoria" class="form-select">
+            <option value="">Todas las categorías</option>
+            {% for categoria in categorias %}
+                {% comment %}
+                categoria_id viene de la URL como texto, por eso paso el id a texto con stringformat para compararlos.
+                {% endcomment %}
+                <option value="{{ categoria.id }}" {% if categoria.id|stringformat:"s" == categoria_id %}selected{% endif %}>
+                    {{ categoria.nombre }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2 d-grid">
+        <button type="submit" class="btn btn-success">Buscar</button>
+    </div>
+</form>
+
+{% if texto or categoria_id %}
+    <p class="text-muted">
+        {{ pagina.paginator.count }} resultado{{ pagina.paginator.count|pluralize }}.
+        <a href="{% url 'catalogo:listado' %}">Quitar búsqueda y filtro</a>
+    </p>
+{% endif %}
+
+{% comment %}
+pagina.object_list tiene solo los cinco productos de la pagina actual.
+{% endcomment %}
+<div class="list-group mb-4">
+    {% for producto in pagina.object_list %}
+        <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h2 class="h6 mb-1">{{ producto.nombre }}</h2>
+                    <p class="small text-muted mb-1">
+                        {{ producto.categoria|default:"Sin categoría" }} · por {{ producto.vendedor.username }}
+                        · publicado el {{ producto.fecha_publicacion|date:"d/m/Y" }}
+                    </p>
+                    <div>
+                        {% for etiqueta in producto.etiquetas.all %}
+                            <span class="badge text-bg-secondary">{{ etiqueta.nombre }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="text-end">
+                    <div class="fw-bold">${{ producto.precio|intcomma }}</div>
+                    {% if producto.estado == "agotado" %}
+                        <span class="badge text-bg-danger">Agotado</span>
+                    {% else %}
+                        <small class="text-muted">Stock: {{ producto.stock }}</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="list-group-item text-muted">No se encontraron productos.</div>
+    {% endfor %}
+</div>
+
+{% comment %}
+Paginacion. En cada enlace pongo el numero de pagina y despues los parametros de busqueda y filtro,
+asi al cambiar de pagina se mantienen. Solo la muestro si hay mas de una pagina.
+{% endcomment %}
+{% if pagina.has_other_pages %}
+    <nav>
+        <ul class="pagination justify-content-center">
+            {% if pagina.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ pagina.previous_page_number }}{% if parametros %}&{{ parametros }}{% endif %}">Anterior</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+            {% endif %}
+
+            {% for numero in pagina.paginator.page_range %}
+                {% if numero == pagina.number %}
+                    <li class="page-item active"><span class="page-link">{{ numero }}</span></li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ numero }}{% if parametros %}&{{ parametros }}{% endif %}">{{ numero }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if pagina.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ pagina.next_page_number }}{% if parametros %}&{{ parametros }}{% endif %}">Siguiente</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+    <p class="text-center small text-muted">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }}</p>
+{% endif %}
+
+{% endblock %}

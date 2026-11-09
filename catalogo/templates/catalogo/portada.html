@@ -8,10 +8,11 @@
 {% comment %} Presentacion de la red, lo primero que pide la portada. {% endcomment %}
 <div class="p-5 mb-4 bg-white rounded-3 shadow-sm">
     <h1 class="display-6 fw-bold">Red de Emprendedores</h1>
-    <p class="lead mb-0">
+    <p class="lead">
         Somos una red de emprendedores locales. Cada vendedor publica sus productos
         y tú puedes hacer tus pedidos directamente desde el sitio.
     </p>
+    <a href="{% url 'catalogo:listado' %}" class="btn btn-success">Ver todos los productos</a>
 </div>
 
 {% comment %} Los tres contadores que vienen calculados desde la vista. {% endcomment %}

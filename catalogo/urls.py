@@ -8,4 +8,5 @@ app_name = "catalogo"
 
 urlpatterns = [
     path("", views.portada, name="portada"),
+    path("productos/", views.listado, name="listado"),
 ]
