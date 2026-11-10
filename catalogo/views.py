@@ -1,9 +1,12 @@
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 
 from pedidos.models import Pedido
 
+from .forms import ProductoForm
 from .models import Categoria, Producto
 
 
@@ -92,3 +95,68 @@ def detalle(request, pk):
         pk=pk,
     )
     return render(request, "catalogo/detalle.html", {"producto": producto})
+
+
+@login_required
+def crear_producto(request):
+    """Publicar un producto nuevo. El vendedor es siempre el usuario con la sesion."""
+
+    if request.method == "POST":
+        form = ProductoForm(request.POST, vendedor=request.user)
+        if form.is_valid():
+            # commit=False arma el producto con los datos del formulario pero todavia no lo guarda.
+            # Lo necesito asi para ponerle el vendedor antes, porque ese campo no viene en el formulario.
+            # Si el vendedor viniera en el formulario, cualquiera podria publicar a nombre de otro.
+            producto = form.save(commit=False)
+            producto.vendedor = request.user
+            producto.save()
+            messages.success(request, f"El producto «{producto.nombre}» fue publicado.")
+            return redirect("catalogo:detalle", pk=producto.pk)
+        messages.error(request, "No se pudo publicar el producto, revisa los errores del formulario.")
+    else:
+        form = ProductoForm(vendedor=request.user)
+
+    contexto = {"form": form, "titulo": "Publicar producto", "boton": "Publicar"}
+    return render(request, "catalogo/producto_form.html", contexto)
+
+
+@login_required
+def editar_producto(request, pk):
+    """Editar un producto existente. Uso la misma plantilla que para crear."""
+
+    producto = get_object_or_404(Producto, pk=pk)
+
+    if request.method == "POST":
+        # Con instance el formulario actualiza este producto en vez de crear uno nuevo.
+        form = ProductoForm(request.POST, instance=producto, vendedor=producto.vendedor)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Los cambios fueron guardados.")
+            return redirect("catalogo:detalle", pk=producto.pk)
+        messages.error(request, "No se pudieron guardar los cambios, revisa los errores del formulario.")
+    else:
+        # Al abrir la pagina el formulario viene precargado con los datos actuales del producto.
+        form = ProductoForm(instance=producto, vendedor=producto.vendedor)
+
+    contexto = {"form": form, "producto": producto, "titulo": "Editar producto", "boton": "Guardar cambios"}
+    return render(request, "catalogo/producto_form.html", contexto)
+
+
+@login_required
+def eliminar_producto(request, pk):
+    """Eliminar un producto pidiendo confirmacion antes."""
+
+    producto = get_object_or_404(Producto, pk=pk)
+
+    # Con GET solo muestro la pagina de confirmacion, no borro nada.
+    # El borrado real pasa solo con POST, cuando el usuario aprieta el boton de confirmar.
+    # Asi un enlace o un clic por error no puede eliminar un producto.
+    if request.method == "POST":
+        nombre = producto.nombre
+        producto.delete()
+        messages.success(request, f"El producto «{nombre}» fue eliminado.")
+        return redirect("catalogo:listado")
+
+    # Cuento los pedidos para avisar que tambien se borran, porque Pedido tiene on_delete CASCADE.
+    contexto = {"producto": producto, "total_pedidos": producto.pedidos.count()}
+    return render(request, "catalogo/producto_confirmar_eliminar.html", contexto)

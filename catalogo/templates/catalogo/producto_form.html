@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% comment %}
+Uso esta misma plantilla para crear y para editar.
+La vista me manda el titulo y el texto del boton, y si es edicion tambien me manda el producto.
+{% endcomment %}
+
+{% block titulo %}{{ titulo }} · Catálogo de Emprendedores{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-9 col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-3">{{ titulo }}</h1>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% include "form_campos.html" %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">{{ boton }}</button>
+                        {% comment %} Si estoy editando, cancelar vuelve al detalle. Si estoy creando, vuelve al listado. {% endcomment %}
+                        {% if producto %}
+                            <a href="{% url 'catalogo:detalle' producto.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+                        {% else %}
+                            <a href="{% url 'catalogo:listado' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

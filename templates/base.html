@@ -23,6 +23,9 @@ Uso Bootstrap desde CDN para tener un diseño ordenado sin escribir mucho CSS.
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link" href="{% url 'catalogo:portada' %}">Inicio</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'catalogo:listado' %}">Productos</a></li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'catalogo:crear' %}">Publicar producto</a></li>
+                    {% endif %}
                 </ul>
                 {% comment %}
                 Menu que cambia segun haya sesion. user.is_authenticated es verdadero si el usuario inicio sesion.

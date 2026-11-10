@@ -64,8 +64,18 @@
             </div>
         </div>
         {% comment %}
-        Aqui despues van los botones de editar y eliminar para el dueño, y el de hacer pedido para los demas.
+        Los botones de editar y eliminar solo los muestro al dueño del producto.
+        Ojo: esto solo los oculta. La proteccion de verdad tiene que ir en la vista, eso lo agrego en el hito 4.
         {% endcomment %}
+        {% if user == producto.vendedor %}
+            <div class="card shadow-sm mt-3">
+                <div class="card-body d-grid gap-2">
+                    <a href="{% url 'catalogo:editar' producto.pk %}" class="btn btn-outline-success">Editar producto</a>
+                    <a href="{% url 'catalogo:eliminar' producto.pk %}" class="btn btn-outline-danger">Eliminar producto</a>
+                </div>
+            </div>
+        {% endif %}
+        {% comment %} Aqui despues va el boton de hacer pedido para los que no son dueños. {% endcomment %}
     </div>
 </div>
 

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block titulo %}Eliminar producto · Catálogo de Emprendedores{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-danger">
+            <div class="card-body p-4">
+                <h1 class="h4 text-danger mb-3">Eliminar producto</h1>
+                <p>¿Seguro que quieres eliminar <strong>{{ producto.nombre }}</strong>? Esta acción no se puede deshacer.</p>
+
+                {% if total_pedidos %}
+                    <div class="alert alert-warning">
+                        Este producto tiene {{ total_pedidos }} pedido{{ total_pedidos|pluralize }} asociado{{ total_pedidos|pluralize }},
+                        que también se eliminará{{ total_pedidos|pluralize:"n" }}.
+                    </div>
+                {% endif %}
+
+                {% comment %}
+                El borrado va en un formulario POST con csrf_token. Abrir esta pagina con GET no borra nada.
+                {% endcomment %}
+                <form method="post" class="d-flex gap-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                    <a href="{% url 'catalogo:detalle' producto.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
