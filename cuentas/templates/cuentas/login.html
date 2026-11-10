@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block titulo %}Ingresar · Catálogo de Emprendedores{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-3">Ingresar</h1>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% include "form_campos.html" %}
+                    {% comment %}
+                    Guardo next en un campo oculto para no perderlo cuando se envia el formulario.
+                    {% endcomment %}
+                    <input type="hidden" name="next" value="{{ next }}">
+                    <button type="submit" class="btn btn-success w-100">Ingresar</button>
+                </form>
+
+                <p class="text-center small mt-3 mb-0">
+                    ¿No tienes cuenta? <a href="{% url 'cuentas:registro' %}">Regístrate</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

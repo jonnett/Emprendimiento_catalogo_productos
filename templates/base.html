@@ -25,8 +25,29 @@ Uso Bootstrap desde CDN para tener un diseño ordenado sin escribir mucho CSS.
                     <li class="nav-item"><a class="nav-link" href="{% url 'catalogo:listado' %}">Productos</a></li>
                 </ul>
                 {% comment %}
-                Aqui despues agrego el menu que cambia segun haya sesion o no, en el hito 3.
+                Menu que cambia segun haya sesion. user.is_authenticated es verdadero si el usuario inicio sesion.
+                El cierre de sesion lo hago con un formulario POST y no con un enlace, porque un enlace es GET
+                y cualquier pagina podria cerrarle la sesion al usuario solo con poner ese enlace en una imagen.
+                Con POST el formulario lleva el csrf_token y Django revisa que venga de mi propio sitio.
                 {% endcomment %}
+                <ul class="navbar-nav align-items-lg-center">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <span class="navbar-text me-3">Hola, {{ user.first_name|default:user.username }}</span>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'cuentas:logout' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-light btn-sm">Cerrar sesión</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'cuentas:login' %}">Ingresar</a></li>
+                        <li class="nav-item">
+                            <a class="btn btn-light btn-sm ms-lg-2" href="{% url 'cuentas:registro' %}">Registrarse</a>
+                        </li>
+                    {% endif %}
+                </ul>
             </div>
         </div>
     </nav>

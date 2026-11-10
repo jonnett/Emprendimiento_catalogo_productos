@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     # Mis apps del proyecto. Si creo una app nueva y no la agrego aqui, Django no ve sus modelos.
     "catalogo",
     "pedidos",
+    "cuentas",
 ]
 
 MIDDLEWARE = [
@@ -102,3 +103,9 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# Rutas de sesion. LOGIN_URL es a donde login_required manda a quien entra a una pagina protegida sin sesion.
+# Uso los nombres de las rutas en vez de escribir la direccion, asi si cambio la URL no tengo que tocar esto.
+LOGIN_URL = "cuentas:login"
+LOGIN_REDIRECT_URL = "catalogo:portada"
