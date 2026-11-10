@@ -2,7 +2,10 @@ from django import forms
 
 from cuentas.forms import EstiloBootstrapMixin
 
-from .models import Producto
+from .models import Categoria, Etiqueta, Producto
+
+# Lo dejo en una constante para usar el mismo numero en la validacion y en el texto de ayuda.
+MAXIMO_ETIQUETAS = 5
 
 
 class ProductoForm(EstiloBootstrapMixin, forms.ModelForm):
@@ -14,9 +17,28 @@ class ProductoForm(EstiloBootstrapMixin, forms.ModelForm):
     y la fecha la pone auto_now_add.
     """
 
+    # Redefino estos dos campos para controlar como se ven y que opciones muestran.
+    # La categoria es opcional porque el caso dice que un producto puede quedar sin catalogo.
+    # empty_label es el texto de la opcion vacia de la lista.
+    categoria = forms.ModelChoiceField(
+        queryset=Categoria.objects.all(),
+        required=False,
+        empty_label="Sin categoría",
+        label="Categoría",
+    )
+
+    # Las etiquetas las muestro como casillas, que es mas claro que una lista donde hay que apretar Ctrl.
+    etiquetas = forms.ModelMultipleChoiceField(
+        queryset=Etiqueta.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label="Etiquetas",
+        help_text=f"Elige hasta {MAXIMO_ETIQUETAS} etiquetas.",
+    )
+
     class Meta:
         model = Producto
-        fields = ["nombre", "descripcion", "precio", "stock"]
+        fields = ["nombre", "descripcion", "precio", "stock", "categoria", "etiquetas"]
         labels = {
             "nombre": "Nombre del producto",
             "descripcion": "Descripción",
@@ -63,3 +85,31 @@ class ProductoForm(EstiloBootstrapMixin, forms.ModelForm):
                 raise forms.ValidationError("Ya tienes un producto publicado con ese nombre.")
 
         return nombre
+
+    def clean_etiquetas(self):
+        # Regla del caso: hasta cinco etiquetas por producto.
+        # Aqui ya tengo las etiquetas que marco el usuario y solo cuento cuantas son.
+        etiquetas = self.cleaned_data["etiquetas"]
+        if len(etiquetas) > MAXIMO_ETIQUETAS:
+            raise forms.ValidationError(
+                f"Puedes elegir como máximo {MAXIMO_ETIQUETAS} etiquetas, marcaste {len(etiquetas)}."
+            )
+        return etiquetas
+
+
+class CategoriaForm(EstiloBootstrapMixin, forms.ModelForm):
+    """Formulario para crear categorias desde el sitio."""
+
+    class Meta:
+        model = Categoria
+        fields = ["nombre"]
+        labels = {"nombre": "Nombre de la categoría"}
+        help_texts = {"nombre": "Por ejemplo: Decoración, Cosmética natural, Juguetes."}
+
+    def clean_nombre(self):
+        # Quito espacios de sobra y dejo la primera letra en mayuscula para que el filtro del listado se vea ordenado.
+        # Que no se repita lo revisa solo el ModelForm, porque en el modelo el nombre tiene unique=True.
+        nombre = " ".join(self.cleaned_data["nombre"].split())
+        if len(nombre) < 3:
+            raise forms.ValidationError("El nombre debe tener al menos 3 letras.")
+        return nombre[0].upper() + nombre[1:]

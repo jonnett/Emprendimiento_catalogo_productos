@@ -12,7 +12,22 @@ Los errores generales son los que no pertenecen a un campo, por ejemplo usuario 
 {% for campo in form %}
     <div class="mb-3">
         <label for="{{ campo.id_for_label }}" class="form-label">{{ campo.label }}</label>
-        {{ campo }}
+        {% comment %}
+        Si el campo es de casillas, como las etiquetas, dibujo cada opcion en linea para que se lea mejor.
+        widget_type me dice el tipo de campo sin tener que revisarlo en Python.
+        {% endcomment %}
+        {% if campo.widget_type == "checkboxselectmultiple" %}
+            <div>
+                {% for opcion in campo %}
+                    <div class="form-check form-check-inline">
+                        {{ opcion.tag }}
+                        <label class="form-check-label" for="{{ opcion.id_for_label }}">{{ opcion.choice_label }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            {{ campo }}
+        {% endif %}
         {% if campo.help_text %}
             <div class="form-text">{{ campo.help_text|safe }}</div>
         {% endif %}

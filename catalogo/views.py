@@ -2,12 +2,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from pedidos.models import Pedido
 
-from .forms import ProductoForm
+from .forms import CategoriaForm, ProductoForm
 from .models import Categoria, Producto
 
 
@@ -111,6 +111,10 @@ def crear_producto(request):
             producto = form.save(commit=False)
             producto.vendedor = request.user
             producto.save()
+            # Cuando uso commit=False, Django no guarda las relaciones muchos a muchos,
+            # porque el producto todavia no tenia id. Por eso despues de guardar llamo a save_m2m,
+            # que guarda las etiquetas elegidas en la tabla intermedia. Si me olvido de esto, las etiquetas se pierden.
+            form.save_m2m()
             messages.success(request, f"El producto «{producto.nombre}» fue publicado.")
             return redirect("catalogo:detalle", pk=producto.pk)
         messages.error(request, "No se pudo publicar el producto, revisa los errores del formulario.")
@@ -197,3 +201,22 @@ def mis_productos(request):
         .order_by("-fecha_publicacion", "-id")
     )
     return render(request, "catalogo/mis_productos.html", {"productos": productos})
+
+
+@login_required
+def categorias(request):
+    """Muestra las categorias y deja crear nuevas desde el sitio, en la misma pagina."""
+
+    if request.method == "POST":
+        form = CategoriaForm(request.POST)
+        if form.is_valid():
+            categoria = form.save()
+            messages.success(request, f"La categoría «{categoria.nombre}» fue creada.")
+            return redirect("catalogo:categorias")
+        messages.error(request, "No se pudo crear la categoría, revisa el nombre.")
+    else:
+        form = CategoriaForm()
+
+    # Cuento los productos de cada categoria con annotate, en la misma consulta.
+    lista = Categoria.objects.annotate(total_productos=Count("productos")).order_by("nombre")
+    return render(request, "catalogo/categorias.html", {"form": form, "categorias": lista})

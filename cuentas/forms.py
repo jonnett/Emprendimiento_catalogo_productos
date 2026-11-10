@@ -13,8 +13,15 @@ class EstiloBootstrapMixin:
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Bootstrap usa una clase distinta segun el tipo de campo, por eso reviso el widget de cada uno.
+        # Las casillas de varias opciones van primero porque tambien son un tipo de Select por dentro.
         for campo in self.fields.values():
-            campo.widget.attrs["class"] = "form-control"
+            if isinstance(campo.widget, forms.CheckboxSelectMultiple):
+                campo.widget.attrs["class"] = "form-check-input"
+            elif isinstance(campo.widget, forms.Select):
+                campo.widget.attrs["class"] = "form-select"
+            else:
+                campo.widget.attrs["class"] = "form-control"
 
 
 class RegistroForm(EstiloBootstrapMixin, UserCreationForm):

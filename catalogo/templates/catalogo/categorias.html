@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block titulo %}Categorías · Catálogo de Emprendedores{% endblock %}
+
+{% block contenido %}
+<h1 class="h3 mb-4">Categorías</h1>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Nueva categoría</h2>
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% include "form_campos.html" %}
+                    <button type="submit" class="btn btn-success">Crear categoría</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Categorías existentes</h2>
+                <ul class="list-group list-group-flush">
+                    {% for categoria in categorias %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {% comment %} Este enlace abre el listado ya filtrado por esta categoria. {% endcomment %}
+                            <a href="{% url 'catalogo:listado' %}?categoria={{ categoria.id }}">{{ categoria.nombre }}</a>
+                            <span class="badge text-bg-success rounded-pill">{{ categoria.total_productos }}</span>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item text-muted">Todavía no hay categorías.</li>
+                    {% endfor %}
+                </ul>
+                <p class="small text-muted mt-3 mb-0">
+                    Si se elimina una categoría, sus productos no se borran: quedan "Sin categoría"
+                    y su vendedor puede asignarles otra.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
