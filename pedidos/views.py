@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -77,3 +78,75 @@ def cancelar_pedido(request, pk):
     pedido.save(update_fields=["estado"])
     messages.success(request, "Tu pedido fue cancelado.")
     return redirect("pedidos:mis_pedidos")
+
+
+@login_required
+def pedidos_recibidos(request):
+    """Solicitudes recibidas: los pedidos que otros hicieron sobre mis productos."""
+
+    # Filtro siguiendo la relacion: pedidos cuyo producto tiene como vendedor al usuario con la sesion.
+    # El doble guion bajo en producto__vendedor pasa del pedido al producto y del producto al vendedor.
+    pedidos = (
+        Pedido.objects
+        .filter(producto__vendedor=request.user)
+        .select_related("producto", "comprador")
+        .order_by("-fecha", "-id")
+    )
+    return render(request, "pedidos/pedidos_recibidos.html", {"pedidos": pedidos})
+
+
+@require_POST
+@login_required
+def responder_pedido(request, pk):
+    """El vendedor acepta o rechaza un pedido pendiente de uno de sus productos."""
+
+    # El boton que apreto el vendedor manda accion con el valor aceptar o rechazar.
+    accion = request.POST.get("accion")
+
+    # transaction.atomic hace que todo lo de adentro se guarde junto o no se guarde nada.
+    # select_for_update bloquea la fila del pedido y la del producto mientras dura la transaccion.
+    # Asi, si el vendedor acepta dos pedidos al mismo tiempo, el segundo espera al primero
+    # y ve el stock ya descontado, y no se vende mas de lo que hay.
+    with transaction.atomic():
+        pedido = get_object_or_404(
+            Pedido.objects.select_for_update().select_related("producto"),
+            pk=pk,
+        )
+        producto = pedido.producto
+
+        # Autorizacion: solo el vendedor del producto puede responder sus pedidos.
+        if producto.vendedor_id != request.user.id:
+            raise PermissionDenied("No puedes responder pedidos de productos que no son tuyos.")
+
+        # Solo se responden los pendientes. Uno cancelado, aceptado o rechazado ya no cambia.
+        if pedido.estado != Pedido.Estado.PENDIENTE:
+            messages.error(request, "Este pedido ya no está pendiente.")
+            return redirect("pedidos:recibidos")
+
+        if accion == "aceptar":
+            # Reviso el stock otra vez, porque pudo bajar desde que el comprador hizo el pedido.
+            if pedido.cantidad > producto.stock:
+                messages.error(
+                    request,
+                    f"No hay stock suficiente para aceptar este pedido. Quedan {producto.stock} unidades.",
+                )
+                return redirect("pedidos:recibidos")
+
+            # Al aceptar descuento las unidades del stock.
+            # El save() del producto se encarga de pasarlo a agotado si llega a cero.
+            producto.stock -= pedido.cantidad
+            producto.save()
+            pedido.estado = Pedido.Estado.ACEPTADO
+            pedido.save(update_fields=["estado"])
+            messages.success(request, f"Aceptaste el pedido de {pedido.comprador.username}. El stock fue descontado.")
+
+        elif accion == "rechazar":
+            pedido.estado = Pedido.Estado.RECHAZADO
+            pedido.save(update_fields=["estado"])
+            messages.info(request, f"Rechazaste el pedido de {pedido.comprador.username}.")
+
+        else:
+            # Si alguien manda otro valor modificando el HTML, no hago nada.
+            messages.error(request, "Acción no válida.")
+
+    return redirect("pedidos:recibidos")
