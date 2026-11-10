@@ -36,6 +36,9 @@ Uso Bootstrap desde CDN para tener un diseño ordenado sin escribir mucho CSS.
                             <span class="navbar-text me-3">Hola, {{ user.first_name|default:user.username }}</span>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link me-2" href="{% url 'cuentas:mi_cuenta' %}">Mi cuenta</a>
+                        </li>
+                        <li class="nav-item">
                             <form method="post" action="{% url 'cuentas:logout' %}" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-outline-light btn-sm">Cerrar sesión</button>

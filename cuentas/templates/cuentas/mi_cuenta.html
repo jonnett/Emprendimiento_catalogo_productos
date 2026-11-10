@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block titulo %}Mi cuenta · Catálogo de Emprendedores{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-4">Mi cuenta</h1>
+
+                {% comment %} user es el usuario con la sesion, Django lo deja disponible en todas las plantillas. {% endcomment %}
+                <dl class="row">
+                    <dt class="col-sm-4">Usuario</dt>
+                    <dd class="col-sm-8">{{ user.username }}</dd>
+
+                    <dt class="col-sm-4">Nombre</dt>
+                    <dd class="col-sm-8">{{ user.first_name|default:"Sin nombre" }}</dd>
+
+                    <dt class="col-sm-4">Apellido</dt>
+                    <dd class="col-sm-8">{{ user.last_name|default:"Sin apellido" }}</dd>
+
+                    <dt class="col-sm-4">Correo</dt>
+                    <dd class="col-sm-8">{{ user.email|default:"Sin correo" }}</dd>
+
+                    <dt class="col-sm-4">Miembro desde</dt>
+                    <dd class="col-sm-8">{{ user.date_joined|date:"d/m/Y" }}</dd>
+                </dl>
+
+                <div class="d-flex gap-2">
+                    <a href="{% url 'cuentas:editar_cuenta' %}" class="btn btn-success">Editar mis datos</a>
+                    <a href="{% url 'cuentas:cambiar_contrasena' %}" class="btn btn-outline-secondary">Cambiar contraseña</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

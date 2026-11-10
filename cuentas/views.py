@@ -1,10 +1,11 @@
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .forms import LoginForm, RegistroForm
+from .forms import CambiarContrasenaForm, EditarCuentaForm, LoginForm, RegistroForm
 
 
 def registro(request):
@@ -69,3 +70,53 @@ def cerrar_sesion(request):
     logout(request)
     messages.info(request, "Cerraste sesión. ¡Vuelve pronto!")
     return redirect("catalogo:portada")
+
+
+# login_required protege la vista: si no hay sesion, manda al usuario a LOGIN_URL con ?next=
+# para que despues de ingresar vuelva aqui. Ocultar el enlace del menu no basta,
+# porque igual podrian escribir la direccion a mano.
+@login_required
+def mi_cuenta(request):
+    """Muestra los datos del usuario que tiene la sesion iniciada."""
+    # No necesito buscar al usuario en la base, Django ya me lo entrega en request.user.
+    return render(request, "cuentas/mi_cuenta.html")
+
+
+@login_required
+def editar_cuenta(request):
+    """Editar nombre, apellido y correo del usuario con sesion."""
+
+    # instance=request.user hace que el formulario venga precargado con sus datos
+    # y que al guardar actualice ese mismo usuario en vez de crear uno nuevo.
+    if request.method == "POST":
+        form = EditarCuentaForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Tus datos fueron actualizados.")
+            return redirect("cuentas:mi_cuenta")
+        messages.error(request, "Revisa los datos del formulario.")
+    else:
+        form = EditarCuentaForm(instance=request.user)
+
+    return render(request, "cuentas/editar_cuenta.html", {"form": form})
+
+
+@login_required
+def cambiar_contrasena(request):
+    """Cambiar la contraseña pidiendo la actual."""
+
+    # PasswordChangeForm recibe primero el usuario, asi puede revisar que la contraseña actual sea la correcta.
+    if request.method == "POST":
+        form = CambiarContrasenaForm(request.user, request.POST)
+        if form.is_valid():
+            usuario = form.save()
+            # Al cambiar la contraseña Django invalida las sesiones abiertas de ese usuario.
+            # update_session_auth_hash actualiza la sesion actual para que no lo saque del sitio.
+            update_session_auth_hash(request, usuario)
+            messages.success(request, "Tu contraseña fue cambiada.")
+            return redirect("cuentas:mi_cuenta")
+        messages.error(request, "No se pudo cambiar la contraseña, revisa los errores.")
+    else:
+        form = CambiarContrasenaForm(request.user)
+
+    return render(request, "cuentas/cambiar_contrasena.html", {"form": form})

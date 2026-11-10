@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, UserCreationForm
 
 User = get_user_model()
 
@@ -43,3 +43,30 @@ class RegistroForm(EstiloBootstrapMixin, UserCreationForm):
 class LoginForm(EstiloBootstrapMixin, AuthenticationForm):
     """Uso el formulario de ingreso de Django tal cual, solo le agrego los estilos.
     AuthenticationForm revisa el usuario y la contraseña y avisa si la cuenta esta inactiva."""
+
+
+class EditarCuentaForm(EstiloBootstrapMixin, forms.ModelForm):
+    """Formulario de Mi cuenta para editar nombre, apellido y correo.
+    El nombre de usuario no lo dejo editar porque es con lo que la persona ingresa al sitio."""
+
+    email = forms.EmailField(label="Correo electrónico", required=True)
+
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "email"]
+        labels = {"first_name": "Nombre", "last_name": "Apellido"}
+
+    def clean_email(self):
+        # Igual que en el registro, el correo no puede ser de otra persona.
+        # La diferencia es que aqui excluyo al propio usuario con exclude(pk=...),
+        # porque si guarda sin cambiar su correo, el correo ya existe pero es el suyo.
+        email = self.cleaned_data["email"].strip().lower()
+        existe = User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists()
+        if existe:
+            raise forms.ValidationError("Ese correo ya pertenece a otra cuenta.")
+        return email
+
+
+class CambiarContrasenaForm(EstiloBootstrapMixin, PasswordChangeForm):
+    """Uso el formulario de Django para cambiar la contraseña.
+    Pide la contraseña actual, la nueva dos veces, y aplica los validadores de AUTH_PASSWORD_VALIDATORS."""
