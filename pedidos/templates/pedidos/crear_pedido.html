@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block titulo %}Hacer pedido · Catálogo de Emprendedores{% endblock %}
+
+{% block contenido %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-3">Hacer pedido</h1>
+
+                {% comment %} Resumen del producto para que el comprador sepa que esta pidiendo. {% endcomment %}
+                <div class="border rounded p-3 mb-3 bg-light">
+                    <div class="fw-bold">{{ producto.nombre }}</div>
+                    <div class="small text-muted">Vendedor: {{ producto.vendedor.username }}</div>
+                    <div>${{ producto.precio|intcomma }} por unidad · {{ producto.stock }} disponible{{ producto.stock|pluralize }}</div>
+                </div>
+
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    {% include "form_campos.html" %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">Enviar pedido</button>
+                        <a href="{% url 'catalogo:detalle' producto.pk %}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

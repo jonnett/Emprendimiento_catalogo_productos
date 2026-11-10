@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block titulo %}Mis pedidos · Catálogo de Emprendedores{% endblock %}
+
+{% block contenido %}
+<h1 class="h3 mb-3">Mis pedidos</h1>
+
+{% if pedidos %}
+    <div class="table-responsive">
+        <table class="table align-middle bg-white shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Producto</th>
+                    <th>Vendedor</th>
+                    <th class="text-end">Cantidad</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th class="text-end">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pedido in pedidos %}
+                    <tr>
+                        <td><a href="{% url 'catalogo:detalle' pedido.producto.pk %}">{{ pedido.producto.nombre }}</a></td>
+                        <td>{{ pedido.producto.vendedor.username }}</td>
+                        <td class="text-end">{{ pedido.cantidad }}</td>
+                        <td>{{ pedido.fecha|date:"d/m/Y H:i" }}</td>
+                        <td>{% include "pedidos/estado_badge.html" %}</td>
+                        <td class="text-end">
+                            {% comment %}
+                            El boton de cancelar solo aparece en los pendientes, y es un formulario POST.
+                            La vista igual revisa que sea pendiente y que el pedido sea mio.
+                            {% endcomment %}
+                            {% if pedido.estado == "pendiente" %}
+                                <form method="post" action="{% url 'pedidos:cancelar' pedido.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Cancelar</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        Todavía no has hecho pedidos. <a href="{% url 'catalogo:listado' %}">Mira los productos</a>.
+    </div>
+{% endif %}
+{% endblock %}

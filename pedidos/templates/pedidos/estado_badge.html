@@ -1,0 +1,13 @@
+{% comment %}
+Muestro el estado del pedido con un color distinto para cada uno.
+Lo dejo en un archivo aparte porque lo uso en Mis pedidos y en Pedidos recibidos.
+{% endcomment %}
+{% if pedido.estado == "pendiente" %}
+    <span class="badge text-bg-warning">{{ pedido.get_estado_display }}</span>
+{% elif pedido.estado == "aceptado" %}
+    <span class="badge text-bg-success">{{ pedido.get_estado_display }}</span>
+{% elif pedido.estado == "rechazado" %}
+    <span class="badge text-bg-danger">{{ pedido.get_estado_display }}</span>
+{% else %}
+    <span class="badge text-bg-secondary">{{ pedido.get_estado_display }}</span>
+{% endif %}

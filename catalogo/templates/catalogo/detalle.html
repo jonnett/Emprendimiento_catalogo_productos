@@ -76,7 +76,24 @@
                 </div>
             </div>
         {% endif %}
-        {% comment %} Aqui despues va el boton de hacer pedido para los que no son dueños. {% endcomment %}
+        {% comment %}
+        Boton de pedido. Al dueño no se lo muestro, y si el producto esta agotado aviso en vez de mostrarlo.
+        Si no hay sesion, lo mando a ingresar con next para que vuelva a este producto despues.
+        Igual que con editar, las reglas de verdad se revisan en la vista y en el modelo Pedido.
+        {% endcomment %}
+        {% if user != producto.vendedor %}
+            <div class="card shadow-sm mt-3">
+                <div class="card-body d-grid">
+                    {% if producto.estado == "agotado" %}
+                        <button class="btn btn-secondary" disabled>Producto agotado</button>
+                    {% elif user.is_authenticated %}
+                        <a href="{% url 'pedidos:crear' producto.pk %}" class="btn btn-success">Hacer pedido</a>
+                    {% else %}
+                        <a href="{% url 'cuentas:login' %}?next={{ request.path|urlencode }}" class="btn btn-success">Ingresa para hacer un pedido</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
     </div>
 </div>
 
