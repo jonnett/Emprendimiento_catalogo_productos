@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block titulo %}Mis productos · Catálogo de Emprendedores{% endblock %}
+
+{% block contenido %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Mis productos</h1>
+    <a href="{% url 'catalogo:crear' %}" class="btn btn-success">Publicar producto</a>
+</div>
+
+{% if productos %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle bg-white shadow-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th class="text-end">Precio</th>
+                    <th class="text-end">Stock</th>
+                    <th>Estado</th>
+                    <th class="text-end">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'catalogo:detalle' producto.pk %}">{{ producto.nombre }}</a>
+                            <div>
+                                {% for etiqueta in producto.etiquetas.all %}
+                                    <span class="badge text-bg-secondary">{{ etiqueta.nombre }}</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>{{ producto.categoria|default:"Sin categoría" }}</td>
+                        <td class="text-end">${{ producto.precio|intcomma }}</td>
+                        <td class="text-end">{{ producto.stock }}</td>
+                        <td>
+                            {% if producto.estado == "agotado" %}
+                                <span class="badge text-bg-danger">Agotado</span>
+                            {% else %}
+                                <span class="badge text-bg-success">Activo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a href="{% url 'catalogo:editar' producto.pk %}" class="btn btn-sm btn-outline-success">Editar</a>
+                            <a href="{% url 'catalogo:eliminar' producto.pk %}" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        Todavía no has publicado productos. <a href="{% url 'catalogo:crear' %}">Publica el primero</a>.
+    </div>
+{% endif %}
+
+{% endblock %}

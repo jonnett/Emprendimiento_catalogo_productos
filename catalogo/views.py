@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -120,15 +121,35 @@ def crear_producto(request):
     return render(request, "catalogo/producto_form.html", contexto)
 
 
+def obtener_producto_propio(request, pk):
+    """Busca el producto y revisa que sea del usuario con la sesion.
+
+    Esta es la regla de permiso de verdad. Ocultar los botones en la plantilla no basta,
+    porque cualquiera puede escribir la URL de editar o eliminar a mano.
+    Por eso la reviso aqui, en el servidor, antes de mostrar o guardar nada.
+    La uso en editar y en eliminar para no repetir el mismo codigo en las dos vistas.
+    """
+    producto = get_object_or_404(Producto, pk=pk)
+
+    # Comparo los id del vendedor y del usuario. Si no son el mismo, lanzo PermissionDenied
+    # y Django responde con el error 403, que es "prohibido" o "sin permiso", usando mi plantilla 403.html.
+    if producto.vendedor_id != request.user.id:
+        raise PermissionDenied("No tienes permiso para modificar un producto que no es tuyo.")
+
+    return producto
+
+
 @login_required
 def editar_producto(request, pk):
     """Editar un producto existente. Uso la misma plantilla que para crear."""
 
-    producto = get_object_or_404(Producto, pk=pk)
+    # Aqui hay dos revisiones distintas. login_required revisa que este identificado (autenticacion)
+    # y obtener_producto_propio revisa que tenga permiso sobre este producto (autorizacion).
+    producto = obtener_producto_propio(request, pk)
 
     if request.method == "POST":
         # Con instance el formulario actualiza este producto en vez de crear uno nuevo.
-        form = ProductoForm(request.POST, instance=producto, vendedor=producto.vendedor)
+        form = ProductoForm(request.POST, instance=producto, vendedor=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, "Los cambios fueron guardados.")
@@ -136,7 +157,7 @@ def editar_producto(request, pk):
         messages.error(request, "No se pudieron guardar los cambios, revisa los errores del formulario.")
     else:
         # Al abrir la pagina el formulario viene precargado con los datos actuales del producto.
-        form = ProductoForm(instance=producto, vendedor=producto.vendedor)
+        form = ProductoForm(instance=producto, vendedor=request.user)
 
     contexto = {"form": form, "producto": producto, "titulo": "Editar producto", "boton": "Guardar cambios"}
     return render(request, "catalogo/producto_form.html", contexto)
@@ -146,7 +167,7 @@ def editar_producto(request, pk):
 def eliminar_producto(request, pk):
     """Eliminar un producto pidiendo confirmacion antes."""
 
-    producto = get_object_or_404(Producto, pk=pk)
+    producto = obtener_producto_propio(request, pk)
 
     # Con GET solo muestro la pagina de confirmacion, no borro nada.
     # El borrado real pasa solo con POST, cuando el usuario aprieta el boton de confirmar.
@@ -160,3 +181,19 @@ def eliminar_producto(request, pk):
     # Cuento los pedidos para avisar que tambien se borran, porque Pedido tiene on_delete CASCADE.
     contexto = {"producto": producto, "total_pedidos": producto.pedidos.count()}
     return render(request, "catalogo/producto_confirmar_eliminar.html", contexto)
+
+
+@login_required
+def mis_productos(request):
+    """Mis registros: solo los productos del usuario con la sesion."""
+
+    # request.user.productos usa el related_name que le puse a la relacion vendedor en el modelo.
+    # Es lo mismo que Producto.objects.filter(vendedor=request.user).
+    # Aqui no recibo ningun id por la URL, asi que es imposible ver los productos de otro.
+    productos = (
+        request.user.productos
+        .select_related("categoria")
+        .prefetch_related("etiquetas")
+        .order_by("-fecha_publicacion", "-id")
+    )
+    return render(request, "catalogo/mis_productos.html", {"productos": productos})

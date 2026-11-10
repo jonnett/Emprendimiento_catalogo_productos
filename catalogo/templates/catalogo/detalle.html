@@ -65,7 +65,8 @@
         </div>
         {% comment %}
         Los botones de editar y eliminar solo los muestro al dueño del producto.
-        Ojo: esto solo los oculta. La proteccion de verdad tiene que ir en la vista, eso lo agrego en el hito 4.
+        Esto solo los oculta para que la pagina se vea ordenada. La proteccion de verdad esta en la vista,
+        en obtener_producto_propio, que responde 403 si alguien entra a la URL de un producto ajeno.
         {% endcomment %}
         {% if user == producto.vendedor %}
             <div class="card shadow-sm mt-3">

@@ -15,4 +15,5 @@ urlpatterns = [
     path("productos/nuevo/", views.crear_producto, name="crear"),
     path("productos/<int:pk>/editar/", views.editar_producto, name="editar"),
     path("productos/<int:pk>/eliminar/", views.eliminar_producto, name="eliminar"),
+    path("mis-productos/", views.mis_productos, name="mis_productos"),
 ]

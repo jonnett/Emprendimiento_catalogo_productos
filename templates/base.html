@@ -24,6 +24,7 @@ Uso Bootstrap desde CDN para tener un diseño ordenado sin escribir mucho CSS.
                     <li class="nav-item"><a class="nav-link" href="{% url 'catalogo:portada' %}">Inicio</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'catalogo:listado' %}">Productos</a></li>
                     {% if user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'catalogo:mis_productos' %}">Mis productos</a></li>
                         <li class="nav-item"><a class="nav-link" href="{% url 'catalogo:crear' %}">Publicar producto</a></li>
                     {% endif %}
                 </ul>
