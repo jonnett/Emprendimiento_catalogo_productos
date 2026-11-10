@@ -48,7 +48,12 @@ MVP hecho con Django y MySQL donde cada vendedor publica sus productos y los com
 
    ```
    python manage.py cargar_datos
+
    ```
+
+
+para generar llave secreta:
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 
 ## Decisiones del proyecto
 
